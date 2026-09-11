@@ -192,6 +192,31 @@ if len(X) > 0 and len(y.unique()) > 1:
 
 st.markdown("---")
 
+# --- WORD CLOUD / TREN KATA KUNCI ---
+    st.markdown("#### ☁️ Word Cloud Ringkasan Berkas Sengketa")
+    
+    if 'resume_kasus_clean' in df_filtered.columns:
+        from wordcloud import WordCloud
+        import matplotlib.pyplot as plt
+
+        # Menggabungkan teks resume kasus
+        teks_sengketa = " ".join(df_filtered['resume_kasus_clean'].dropna().astype(str))
+        
+        if teks_sengketa.strip() != "":
+            wordcloud = WordCloud(
+                width=800, 
+                height=400, 
+                background_color='white',
+                colormap='viridis'
+            ).generate(teks_sengketa)
+            
+            fig_wc, ax = plt.subplots(figsize=(10, 5))
+            ax.imshow(wordcloud, interpolation='bilinear')
+            ax.axis('off')
+            st.pyplot(fig_wc)
+        else:
+            st.warning("Teks resume tidak ditemukan untuk filter ini.")
+
 # ==============================================================================
 # 8. TABEL DETAIL DATASET & TOMBOL DOWNLOAD CSV
 # ==============================================================================
