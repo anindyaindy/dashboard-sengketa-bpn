@@ -1,159 +1,162 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
 
-# ------------------------------------------------------------------------------
-# Konfigurasi Halaman Streamlit
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# 1. KONFIGURASI HALAMAN
+# ==============================================================================
 st.set_page_config(
     page_title="Dashboard Sengketa BPN Purbalingga",
     page_icon="⚖️",
     layout="wide"
 )
 
-# ------------------------------------------------------------------------------
-# Banner Atas - Kombinasi Abu-abu dan Kuning BPN
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# 2. HEADER BANNER & CARDS (TEMA BPN)
+# ==============================================================================
 st.markdown("""
 <div style="
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    padding: 35px;
+    padding: 30px;
     border-radius: 15px;
     color: #1e293b;
-    margin-bottom: 25px;
-    border-top: 5px solid #ffca28; /* Garis Kuning Emas BPN */
+    margin-bottom: 20px;
+    border-top: 5px solid #ffca28;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 ">
-    <h1 style="color: #102a45; margin: 0; font-size: 30px; font-weight: 800;">
+    <h1 style="color: #102a45; margin: 0; font-size: 28px; font-weight: 800;">
         Dashboard Analisis Sengketa Pertanahan BPN Purbalingga
     </h1>
-    <p style="color: #475569; margin-top: 12px; font-size: 16px; max-width: 800px;">
-        Transformasi Digital Berkas Sengketa Menjadi Insight Analitis. Didukung oleh Visualisasi Interaktif dan Klasifikasi Otomatis Berbasis Machine Learning.
+    <p style="color: #475569; margin-top: 8px; font-size: 15px;">
+        Transformasi Digital Berkas Sengketa Menjadi Insight Analitis Berbasis Data Science & Machine Learning.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# ------------------------------------------------------------------------------
-# Kartu Selamat Datang - Tema Biru Dongker
-# ------------------------------------------------------------------------------
 st.markdown("""
 <div style="
-    background-color: #102a45; /* Biru Dongker BPN */
-    padding: 25px;
+    background-color: #102a45;
+    padding: 20px;
     border-radius: 12px;
-    border-right: 6px solid #ffca28; /* Aksen Kuning Emas */
+    border-right: 6px solid #ffca28;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     color: #f1f5f9;
 ">
-    <h2 style="color: #ffffff; margin-top: 0; font-size: 24px; font-weight: 700;">
+    <h3 style="color: #ffffff; margin-top: 0; font-size: 20px; font-weight: 700;">
         Selamat Datang di Sistem Analitik Sengketa! ⚖️
-    </h2>
-    <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 18px;">
-        Gunakan menu navigasi di sebelah kiri (Sidebar) untuk mengakses berbagai modul dashboard:
+    </h3>
+    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 10px;">
+        Gunakan menu navigasi di sebelah kiri (Sidebar) untuk memfilter data dan menjelajahi fitur yang tersedia:
     </p>
-    <ul style="color: #e2e8f0; line-height: 1.8; font-size: 14px; margin-bottom: 0;">
-        <li><b>📊 Ringkasan Metrik</b>: Pantau total kasus, jumlah penyelesaian, dan berkas aktif.</li>
-        <li><b>📈 Visualisasi Interaktif</b>: Analisis tipologi sengketa dan tren kata kunci dokumen.</li>
-        <li><b>🤖 Model Klasifikasi</b>: Evaluasi prediksi otomatis jenis sengketa oleh Machine Learning.</li>
-        <li><b>🗃️ Eksplorasi Data</b>: Tinjau dan kelola detail dataset sengketa secara langsung.</li>
+    <ul style="color: #e2e8f0; line-height: 1.6; font-size: 13px; margin-bottom: 0;">
+        <li><b>📊 Ringkasan Metrik</b>: Pantau total kasus, jumlah penyelesaian, dan berkas aktif secara otomatis.</li>
+        <li><b>📈 Visualisasi Interaktif</b>: Analisis distribusi tipologi sengketa dan tren berkas.</li>
+        <li><b>🤖 Model Klasifikasi Real-Time</b>: Pengujian otomatis tipologi sengketa menggunakan Naive Bayes.</li>
+        <li><b>🗃️ Eksplorasi Data</b>: Tinjau dan unduh detail dataset sengketa secara langsung.</li>
     </ul>
 </div>
 """, unsafe_allow_html=True)
 
-# ------------------------------------------------------------------------------
-# Load Data
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# 3. LOAD DATASET
+# ==============================================================================
 @st.cache_data
 def load_data():
-    return pd.read_csv('data_sengketa_purbalingga_clean.csv')
+    # Mengambil dataset sengketa
+    df = pd.read_csv("data_sengketa.csv") 
+    return df
 
-df = load_data()
+try:
+    df = load_data()
+except Exception as e:
+    st.error("Gagal memuat dataset. Pastikan file 'data_sengketa.csv' ada di repository GitHub Anda.")
+    st.stop()
 
-# ------------------------------------------------------------------------------
-# Sidebar Filter
-# ------------------------------------------------------------------------------
-st.sidebar.title("Filter Data")
-list_tipologi = ["Semua"] + list(df['tipologi_kasus'].dropna().unique())
-selected_tipologi = st.sidebar.selectbox("Pilih Tipologi Kasus:", list_tipologi)
+# ==============================================================================
+# 4. SIDEBAR FILTER & PROFILE
+# ==============================================================================
+st.sidebar.header("🔍 Filter Data")
 
-list_status = ["Semua"] + list(df['status_penyelesaian'].dropna().unique())
-selected_status = st.sidebar.selectbox("Pilih Status Penyelesaian:", list_status)
+# Filter Tipologi Kasus
+list_tipologi = ["Semua"] + list(df['tipologi_kasus'].dropna().unique()) if 'tipologi_kasus' in df.columns else ["Semua"]
+pilihan_tipologi = st.sidebar.selectbox("Pilih Tipologi Kasus:", list_tipologi)
 
-# Filter Logic
+# Filter Status Penyelesaian
+list_status = ["Semua"] + list(df['status_penyelesaian'].dropna().unique()) if 'status_penyelesaian' in df.columns else ["Semua"]
+pilihan_status = st.sidebar.selectbox("Pilih Status Penyelesaian:", list_status)
+
+# Penerapan Filter ke Dataframe
 df_filtered = df.copy()
-if selected_tipologi != "Semua":
-    df_filtered = df_filtered[df_filtered['tipologi_kasus'] == selected_tipologi]
-if selected_status != "Semua":
-    df_filtered = df_filtered[df_filtered['status_penyelesaian'] == selected_status]
+if pilihan_tipologi != "Semua":
+    df_filtered = df_filtered[df_filtered['tipologi_kasus'] == pilihan_tipologi]
 
-# ------------------------------------------------------------------------------
-# Header & Key Metrics (KPI)
-# ------------------------------------------------------------------------------
-st.title("Analytical Dashboard Sengketa Pertanahan")
-st.caption("Kantor Pertanahan Kabupaten Purbalingga — Integrated Data Science View")
-st.markdown("---")
+if pilihan_status != "Semua":
+    df_filtered = df_filtered[df_filtered['status_penyelesaian'] == pilihan_status]
 
-total_kasus = len(df_filtered)
-selesai_kasus = len(df_filtered[df_filtered['status_penyelesaian'].str.contains('Selesai', case=False, na=False)])
-proses_kasus = total_kasus - selesai_kasus
+# Profile Pembuat di Sidebar
+st.sidebar.markdown("---")
+st.sidebar.subheader("ℹ️ Tentang Project")
+st.sidebar.info("""
+**Pengembang:** Anindya Sukma Dwiyanda  
+**Instansi:** BPN Kabupaten Purbalingga  
+**Teknologi:** Python, Streamlit, Scikit-Learn, Plotly
+""")
 
+# ==============================================================================
+# 5. RINGKASAN METRIK (KPI CARDS)
+# ==============================================================================
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Berkas Sengketa", f"{total_kasus} Berkas")
-col2.metric("Status Selesai", f"{selesai_kasus} Berkas")
-col3.metric("Dalam Proses", f"{proses_kasus} Berkas")
+
+total_berkas = len(df_filtered)
+selesai = len(df_filtered[df_filtered['status_penyelesaian'] == 'Selesai']) if 'status_penyelesaian' in df_filtered.columns else 0
+proses = total_berkas - selesai
+
+col1.metric("Total Berkas Sengketa", f"{total_berkas} Berkas")
+col2.metric("Kasus Selesai", f"{selesai} Berkas")
+col3.metric("Dalam Proses", f"{proses} Berkas")
 
 st.markdown("---")
 
-# ------------------------------------------------------------------------------
-# Visualisasi Interaktif (EDA)
-# ------------------------------------------------------------------------------
-c1, c2 = st.columns(2)
+# ==============================================================================
+# 6. VISUALISASI DATA & INSIGHT OTOMATIS
+# ==============================================================================
+st.subheader("📊 Distribusi Tipologi Kasus Sengketa")
 
-with c1:
-    st.subheader("Distribusi Tipologi Kasus Sengketa")
-    if len(df_filtered) > 0:
-        tipologi_counts = df_filtered['tipologi_kasus'].value_counts().reset_index()
-        tipologi_counts.columns = ['Tipologi', 'Jumlah']
-        fig_tipologi = px.bar(
-            tipologi_counts, 
-            y='Tipologi', 
-            x='Jumlah', 
-            orientation='h', 
-            color='Tipologi',
-            color_discrete_sequence=px.colors.qualitative.Bold,
-            text='Jumlah'
-        )
-        fig_tipologi.update_layout(showlegend=False, margin=dict(l=20, r=20, t=20, b=20))
-        st.plotly_chart(fig_tipologi, use_container_width=True)
-    else:
-        st.info("Tidak ada data untuk tipologi ini.")
+if 'tipologi_kasus' in df_filtered.columns and not df_filtered.empty:
+    df_chart = df_filtered['tipologi_kasus'].value_counts().reset_index()
+    df_chart.columns = ['Tipologi Kasus', 'Jumlah']
+    
+    fig = px.bar(
+        df_chart, 
+        x='Tipologi Kasus', 
+        y='Jumlah',
+        color='Tipologi Kasus',
+        text_auto=True,
+        color_discrete_sequence=px.colors.qualitative.Bold
+    )
+    fig.update_layout(showlegend=False, xaxis_title="", yaxis_title="Jumlah Kasus")
+    st.plotly_chart(fig, use_container_width=True)
 
-with c2:
-    st.subheader("Kata Kunci Dominan (Word Cloud)")
-    if len(df_filtered) > 0 and df_filtered['resume_kasus_clean'].dropna().str.cat():
-        all_words = " ".join(df_filtered['resume_kasus_clean'].dropna())
-        wc = WordCloud(width=600, height=380, background_color='#0F172A', colormap='plasma').generate(all_words)
-        fig_wc, ax_wc = plt.subplots(figsize=(6, 3.8))
-        ax_wc.imshow(wc, interpolation='bilinear')
-        ax_wc.axis('off')
-        st.pyplot(fig_wc)
-    else:
-        st.info("Tidak ada teks ringkasan untuk ditampilkan.")
+    # --- TAMBAHAN FITUR 1: DATA STORYTELLING INSIGHT ---
+    top_tipologi = df_chart.iloc[0]['Tipologi Kasus']
+    top_jumlah = df_chart.iloc[0]['Jumlah']
+    st.info(f"💡 **Key Insight:** Tipologi sengketa yang paling sering terjadi pada data ini adalah **{top_tipologi}** dengan total **{top_jumlah} berkas**.")
+else:
+    st.warning("Data tidak ditemukan untuk kombinasi filter ini.")
 
-# ------------------------------------------------------------------------------
-# Evaluasi Machine Learning (Confusion Matrix)
-# ------------------------------------------------------------------------------
 st.markdown("---")
-st.subheader("Evaluasi Model Naive Bayes (Confusion Matrix)")
 
-X = df['resume_kasus_clean'].dropna()
-y = df.loc[X.index, 'tipologi_kasus']
+# ==============================================================================
+# 7. MODEL MACHINE LEARNING & SIMULASI REAL-TIME
+# ==============================================================================
+st.subheader("🤖 Evaluasi Model Naive Bayes & Simulasi Real-Time")
+
+X = df['resume_kasus_clean'].dropna() if 'resume_kasus_clean' in df.columns else pd.Series()
+y = df.loc[X.index, 'tipologi_kasus'] if 'tipologi_kasus' in df.columns else pd.Series()
 
 if len(X) > 0 and len(y.unique()) > 1:
     vec = TfidfVectorizer()
@@ -163,22 +166,43 @@ if len(X) > 0 and len(y.unique()) > 1:
     model.fit(X_vec, y)
     y_pred = model.predict(X_vec)
 
+    # Matriks Evaluasi
     cm = confusion_matrix(y, y_pred, labels=model.classes_)
-
     fig_cm = px.imshow(
-        cm, 
-        x=model.classes_, 
-        y=model.classes_, 
-        text_auto=True, 
+        cm,
+        x=model.classes_,
+        y=model.classes_,
+        text_auto=True,
         color_continuous_scale='YlGnBu',
-        labels=dict(x="Prediksi Model", y="Aktual Data", color="Jumlah")
+        title="Confusion Matrix Classification"
     )
     st.plotly_chart(fig_cm, use_container_width=True)
-else:
-    st.warning("Data belum cukup untuk melatih dan menampilkan evaluasi model Machine Learning.")
 
-# ------------------------------------------------------------------------------
-# Data Table View
-# ------------------------------------------------------------------------------
-with st.expander("Lihat Tabel Detail Berkas Sengketa"):
+    # --- TAMBAHAN FITUR 2: SIMULASI PREDIKSI REAL-TIME ---
+    st.markdown("#### 🧪 Uji Prediksi Kasus Baru")
+    input_teks = st.text_area("Masukkan teks ringkasan berkas sengketa baru di sini untuk dites oleh model:", "")
+
+    if st.button("Prediksi Tipologi Kasus"):
+        if input_teks.strip() != "":
+            teks_vec = vec.transform([input_teks])
+            prediksi = model.predict(teks_vec)[0]
+            st.success(f"**Hasil Prediksi Tipologi:** {prediksi}")
+        else:
+            st.warning("Silakan masukkan teks ringkasan kasus terlebih dahulu.")
+
+st.markdown("---")
+
+# ==============================================================================
+# 8. TABEL DETAIL DATASET & TOMBOL DOWNLOAD CSV
+# ==============================================================================
+with st.expander("📂 Lihat & Unduh Tabel Detail Berkas Sengketa"):
     st.dataframe(df_filtered, use_container_width=True)
+    
+    # --- TAMBAHAN FITUR 3: TOMBOL DOWNLOAD CSV ---
+    csv_data = df_filtered.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download Data Hasil Filter (CSV)",
+        data=csv_data,
+        file_name="data_sengketa_bpn_filtered.csv",
+        mime="text/csv"
+    )
