@@ -67,13 +67,13 @@ st.markdown("""
 @st.cache_data
 def load_data():
     # Mengambil dataset sengketa
-    df = pd.read_csv("data_sengketa.csv") 
+    df = pd.read_csv("data_sengketa_purbalingga_clean.csv") 
     return df
 
 try:
     df = load_data()
 except Exception as e:
-    st.error("Gagal memuat dataset. Pastikan file 'data_sengketa.csv' ada di repository GitHub Anda.")
+    st.error("Gagal memuat dataset. Pastikan file 'data_sengketa_purbalingga_clean.csv' ada di repository GitHub Anda.")
     st.stop()
 
 # ==============================================================================
