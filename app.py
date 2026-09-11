@@ -17,6 +17,56 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------------------
+# Banner Atas - Kombinasi Abu-abu dan Kuning BPN
+# ------------------------------------------------------------------------------
+st.markdown("""
+<div style="
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    padding: 35px;
+    border-radius: 15px;
+    color: #1e293b;
+    margin-bottom: 25px;
+    border-top: 5px solid #ffca28; /* Garis Kuning Emas BPN */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+">
+    <h1 style="color: #102a45; margin: 0; font-size: 30px; font-weight: 800;">
+        Dashboard Analisis Sengketa Pertanahan BPN Purbalingga
+    </h1>
+    <p style="color: #475569; margin-top: 12px; font-size: 16px; max-width: 800px;">
+        Transformasi Digital Berkas Sengketa Menjadi Insight Analitis. Didukung oleh Visualisasi Interaktif dan Klasifikasi Otomatis Berbasis Machine Learning.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+# ------------------------------------------------------------------------------
+# Kartu Selamat Datang - Tema Biru Dongker
+# ------------------------------------------------------------------------------
+st.markdown("""
+<div style="
+    background-color: #102a45; /* Biru Dongker BPN */
+    padding: 25px;
+    border-radius: 12px;
+    border-right: 6px solid #ffca28; /* Aksen Kuning Emas */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    color: #f1f5f9;
+">
+    <h2 style="color: #ffffff; margin-top: 0; font-size: 24px; font-weight: 700;">
+        Selamat Datang di Sistem Analitik Sengketa! ⚖️
+    </h2>
+    <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 18px;">
+        Gunakan menu navigasi di sebelah kiri (Sidebar) untuk mengakses berbagai modul dashboard:
+    </p>
+    <ul style="color: #e2e8f0; line-height: 1.8; font-size: 14px; margin-bottom: 0;">
+        <li><b>📊 Ringkasan Metrik</b>: Pantau total kasus, jumlah penyelesaian, dan berkas aktif.</li>
+        <li><b>📈 Visualisasi Interaktif</b>: Analisis tipologi sengketa dan tren kata kunci dokumen.</li>
+        <li><b>🤖 Model Klasifikasi</b>: Evaluasi prediksi otomatis jenis sengketa oleh Machine Learning.</li>
+        <li><b>🗃️ Eksplorasi Data</b>: Tinjau dan kelola detail dataset sengketa secara langsung.</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
+
+# ------------------------------------------------------------------------------
 # Load Data
 # ------------------------------------------------------------------------------
 @st.cache_data
