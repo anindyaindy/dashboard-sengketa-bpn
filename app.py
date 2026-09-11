@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
@@ -54,7 +56,7 @@ st.markdown("""
     </p>
     <ul style="color: #e2e8f0; line-height: 1.6; font-size: 13px; margin-bottom: 0;">
         <li><b>📊 Ringkasan Metrik</b>: Pantau total kasus, jumlah penyelesaian, dan berkas aktif secara otomatis.</li>
-        <li><b>📈 Visualisasi Interaktif</b>: Analisis distribusi tipologi sengketa dan tren berkas.</li>
+        <li><b>📈 Visualisasi & Word Cloud</b>: Analisis distribusi tipologi sengketa dan kata kunci dokumen.</li>
         <li><b>🤖 Model Klasifikasi Real-Time</b>: Pengujian otomatis tipologi sengketa menggunakan Naive Bayes.</li>
         <li><b>🗃️ Eksplorasi Data</b>: Tinjau dan unduh detail dataset sengketa secara langsung.</li>
     </ul>
@@ -66,7 +68,6 @@ st.markdown("""
 # ==============================================================================
 @st.cache_data
 def load_data():
-    # Mengambil dataset sengketa
     df = pd.read_csv("data_sengketa_purbalingga_clean.csv") 
     return df
 
@@ -122,7 +123,7 @@ col3.metric("Dalam Proses", f"{proses} Berkas")
 st.markdown("---")
 
 # ==============================================================================
-# 6. VISUALISASI DATA & INSIGHT OTOMATIS
+# 6. VISUALISASI DATA & WORD CLOUD
 # ==============================================================================
 st.subheader("📊 Distribusi Tipologi Kasus Sengketa")
 
@@ -141,10 +142,31 @@ if 'tipologi_kasus' in df_filtered.columns and not df_filtered.empty:
     fig.update_layout(showlegend=False, xaxis_title="", yaxis_title="Jumlah Kasus")
     st.plotly_chart(fig, use_container_width=True)
 
-    # --- TAMBAHAN FITUR 1: DATA STORYTELLING INSIGHT ---
+    # --- DATA STORYTELLING INSIGHT ---
     top_tipologi = df_chart.iloc[0]['Tipologi Kasus']
     top_jumlah = df_chart.iloc[0]['Jumlah']
     st.info(f"💡 **Key Insight:** Tipologi sengketa yang paling sering terjadi pada data ini adalah **{top_tipologi}** dengan total **{top_jumlah} berkas**.")
+    
+    # --- WORD CLOUD ringkasan BERKAS ---
+    st.markdown("#### ☁️ Word Cloud Ringkasan Berkas Sengketa")
+    if 'resume_kasus_clean' in df_filtered.columns:
+        teks_sengketa = " ".join(df_filtered['resume_kasus_clean'].dropna().astype(str))
+        
+        if teks_sengketa.strip() != "":
+            wc = WordCloud(
+                width=800, 
+                height=350, 
+                background_color='white',
+                colormap='viridis'
+            ).generate(teks_sengketa)
+            
+            fig_wc, ax = plt.subplots(figsize=(10, 4))
+            ax.imshow(wc, interpolation='bilinear')
+            ax.axis('off')
+            st.pyplot(fig_wc)
+        else:
+            st.warning("Teks resume tidak ditemukan untuk kombinasi filter ini.")
+
 else:
     st.warning("Data tidak ditemukan untuk kombinasi filter ini.")
 
@@ -178,7 +200,7 @@ if len(X) > 0 and len(y.unique()) > 1:
     )
     st.plotly_chart(fig_cm, use_container_width=True)
 
-    # --- TAMBAHAN FITUR 2: SIMULASI PREDIKSI REAL-TIME ---
+    # --- SIMULASI PREDIKSI REAL-TIME ---
     st.markdown("#### 🧪 Uji Prediksi Kasus Baru")
     input_teks = st.text_area("Masukkan teks ringkasan berkas sengketa baru di sini untuk dites oleh model:", "")
 
@@ -192,38 +214,13 @@ if len(X) > 0 and len(y.unique()) > 1:
 
 st.markdown("---")
 
-# --- WORD CLOUD / TREN KATA KUNCI ---
-    st.markdown("#### ☁️ Word Cloud Ringkasan Berkas Sengketa")
-    
-    if 'resume_kasus_clean' in df_filtered.columns:
-        from wordcloud import WordCloud
-        import matplotlib.pyplot as plt
-
-        # Menggabungkan teks resume kasus
-        teks_sengketa = " ".join(df_filtered['resume_kasus_clean'].dropna().astype(str))
-        
-        if teks_sengketa.strip() != "":
-            wordcloud = WordCloud(
-                width=800, 
-                height=400, 
-                background_color='white',
-                colormap='viridis'
-            ).generate(teks_sengketa)
-            
-            fig_wc, ax = plt.subplots(figsize=(10, 5))
-            ax.imshow(wordcloud, interpolation='bilinear')
-            ax.axis('off')
-            st.pyplot(fig_wc)
-        else:
-            st.warning("Teks resume tidak ditemukan untuk filter ini.")
-
 # ==============================================================================
 # 8. TABEL DETAIL DATASET & TOMBOL DOWNLOAD CSV
 # ==============================================================================
 with st.expander("📂 Lihat & Unduh Tabel Detail Berkas Sengketa"):
     st.dataframe(df_filtered, use_container_width=True)
     
-    # --- TAMBAHAN FITUR 3: TOMBOL DOWNLOAD CSV ---
+    # --- TOMBOL DOWNLOAD CSV ---
     csv_data = df_filtered.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Download Data Hasil Filter (CSV)",
