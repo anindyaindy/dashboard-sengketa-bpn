@@ -125,29 +125,53 @@ st.markdown("---")
 # ==============================================================================
 # 6. VISUALISASI DATA & WORD CLOUD
 # ==============================================================================
-st.subheader("📊 Distribusi Tipologi Kasus Sengketa")
+st.subheader("📊 Visualisasi & Analisis Kasus Sengketa")
 
-if 'tipologi_kasus' in df_filtered.columns and not df_filtered.empty:
-    df_chart = df_filtered['tipologi_kasus'].value_counts().reset_index()
-    df_chart.columns = ['Tipologi Kasus', 'Jumlah']
-    
-    fig = px.bar(
-        df_chart, 
-        x='Tipologi Kasus', 
-        y='Jumlah',
-        color='Tipologi Kasus',
-        text_auto=True,
-        color_discrete_sequence=px.colors.qualitative.Bold
-    )
-    fig.update_layout(showlegend=False, xaxis_title="", yaxis_title="Jumlah Kasus")
-    st.plotly_chart(fig, use_container_width=True)
+if not df_filtered.empty:
+    # Membagi grafik menjadi 2 kolom sejajar
+    col_chart1, col_chart2 = st.columns(2)
+
+    # 1. Bar Chart Tipologi Kasus
+    with col_chart1:
+        if 'tipologi_kasus' in df_filtered.columns:
+            df_tipologi = df_filtered['tipologi_kasus'].value_counts().reset_index()
+            df_tipologi.columns = ['Tipologi Kasus', 'Jumlah']
+            
+            fig_bar = px.bar(
+                df_tipologi, 
+                x='Tipologi Kasus', 
+                y='Jumlah',
+                title="Distribusi Tipologi Kasus",
+                color='Tipologi Kasus',
+                text_auto=True,
+                color_discrete_sequence=px.colors.qualitative.Bold
+            )
+            fig_bar.update_layout(showlegend=False, xaxis_title="", yaxis_title="Jumlah Kasus")
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+    # 2. Donut Chart Status Penyelesaian (GRAFIK BARU)
+    with col_chart2:
+        if 'status_penyelesaian' in df_filtered.columns:
+            df_status = df_filtered['status_penyelesaian'].value_counts().reset_index()
+            df_status.columns = ['Status', 'Jumlah']
+            
+            fig_pie = px.pie(
+                df_status, 
+                names='Status', 
+                values='Jumlah',
+                title="Persentase Status Penyelesaian",
+                hole=0.4, # Membuat efek donut chart
+                color_discrete_sequence=['#2bf29a', '#ff4b4b'] # Hijau untuk selesai, merah/oranye untuk proses
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
 
     # --- DATA STORYTELLING INSIGHT ---
-    top_tipologi = df_chart.iloc[0]['Tipologi Kasus']
-    top_jumlah = df_chart.iloc[0]['Jumlah']
-    st.info(f"💡 **Key Insight:** Tipologi sengketa yang paling sering terjadi pada data ini adalah **{top_tipologi}** dengan total **{top_jumlah} berkas**.")
-    
-    # --- WORD CLOUD ringkasan BERKAS ---
+    if 'tipologi_kasus' in df_filtered.columns:
+        top_tipologi = df_filtered['tipologi_kasus'].value_counts().idxmax()
+        top_jumlah = df_filtered['tipologi_kasus'].value_counts().max()
+        st.info(f"💡 **Key Insight:** Tipologi sengketa yang paling sering terjadi pada filter ini adalah **{top_tipologi}** dengan total **{top_jumlah} berkas**.")
+
+    # --- WORD CLOUD RINGKASAN BERKAS ---
     st.markdown("#### ☁️ Word Cloud Ringkasan Berkas Sengketa")
     if 'resume_kasus_clean' in df_filtered.columns:
         teks_sengketa = " ".join(df_filtered['resume_kasus_clean'].dropna().astype(str))
@@ -169,7 +193,6 @@ if 'tipologi_kasus' in df_filtered.columns and not df_filtered.empty:
 
 else:
     st.warning("Data tidak ditemukan untuk kombinasi filter ini.")
-
 st.markdown("---")
 
 # ==============================================================================
