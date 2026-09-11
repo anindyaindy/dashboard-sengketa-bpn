@@ -131,10 +131,6 @@ with c1:
         )
         fig_tipologi.update_layout(showlegend=False, margin=dict(l=20, r=20, t=20, b=20))
         st.plotly_chart(fig_tipologi, use_container_width=True)
-        top_tipologi = df_filtered['tipologi'].value_counts().idxmax()
-        top_jumlah = df_filtered['tipologi'].value_counts().max()
-
-        st.info(f"💡 **Key Insight:** Tipologi sengketa yang paling sering terjadi adalah **{top_tipologi}** dengan total **{top_jumlah} berkas**. Hal ini perlu menjadi fokus utama penanganan.")
     else:
         st.info("Tidak ada data untuk tipologi ini.")
 
@@ -178,19 +174,6 @@ if len(X) > 0 and len(y.unique()) > 1:
         labels=dict(x="Prediksi Model", y="Aktual Data", color="Jumlah")
     )
     st.plotly_chart(fig_cm, use_container_width=True)
-    # --- SIMULASI PREDIKSI REAL-TIME ---
-    st.markdown("---")
-    st.subheader("🤖 Simulasi Klasifikasi Teks Sengketa (Real-Time)")
-    input_teks = st.text_area("Masukkan ringkasan berkas sengketa baru di sini:", "")
-
-    if st.button("Prediksi Tipologi Kasus"):
-        if input_teks.strip() != "":
-        # Mengubah teks input menggunakan vectorizer 'vec' yang sudah di-fit
-        teks_vec = vec.transform([input_teks])
-        prediksi = model.predict(teks_vec)[0]
-        st.success(f"**Hasil Prediksi Tipologi:** {prediksi}")
-        else:
-        st.warning("Silakan masukkan teks ringkasan kasus terlebih dahulu.")
 else:
     st.warning("Data belum cukup untuk melatih dan menampilkan evaluasi model Machine Learning.")
 
@@ -199,10 +182,3 @@ else:
 # ------------------------------------------------------------------------------
 with st.expander("Lihat Tabel Detail Berkas Sengketa"):
     st.dataframe(df_filtered, use_container_width=True)
-    csv_data = df_filtered.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Download Data Hasil Filter (CSV)",
-        data=csv_data,
-        file_name="data_sengketa_bpn_filtered.csv",
-        mime="text/csv"
-    )
