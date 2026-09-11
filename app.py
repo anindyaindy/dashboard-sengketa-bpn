@@ -181,10 +181,10 @@ X = df['resume_kasus_clean'].dropna() if 'resume_kasus_clean' in df.columns else
 y = df.loc[X.index, 'tipologi_kasus'] if 'tipologi_kasus' in df.columns else pd.Series()
 
 if len(X) > 0 and len(y.unique()) > 1:
-    vec = TfidfVectorizer()
+    vec = TfidfVectorizer(sublinear_tf=True, ngram_range=(1, 2))
     X_vec = vec.fit_transform(X)
 
-    model = MultinomialNB()
+    model = MultinomialNB(alpha=0.1)
     model.fit(X_vec, y)
     y_pred = model.predict(X_vec)
 
